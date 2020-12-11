@@ -1,0 +1,13 @@
+name: "my-website"
+navbar:
+  title: "My Website"
+  left:
+    - text: "Homepage"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "Assignment 7"
+      href: networks.html
+    - text: "Final Project"
+      href: Flexdashboard-Ruchikaa-Kanar.html
+      

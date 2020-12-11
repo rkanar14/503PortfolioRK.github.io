@@ -1,0 +1,18 @@
+---
+title: "My Homepage"
+---
+
+```{r figurename, echo=FALSE, fig.cap="", out.width = '90%'}
+knitr::include_graphics("GeorgetownUniversity.jpg")
+```
+
+
+
+<font size="6"> Hello, my name is Ruchikaa Kanar and I am a second year student at Georgetown University. 
+I am currently pursuing my Master's Degree in Data Science and Analytics and plan to graduate in December 2020. 
+My expertise spans both in the entertainment and education industries where I have specialized in the navigation of highly complex datasets and led cross-functional teams. 
+I am currently working as a Data Scientist at Sony Music Entertainment.</font>
+
+
+
+

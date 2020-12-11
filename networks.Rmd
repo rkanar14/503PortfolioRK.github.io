@@ -1,0 +1,104 @@
+---
+title: "Assignment 7-Ruchikaa Kanar"
+author: "Owner"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(tidygraph)
+library(ggraph)
+library(igraph)
+```
+
+
+```{r}
+ # Reading in the Data until the end of the file
+data <- read_excel("State_to_State_Migrations_Table_2018.xls", 
+    range = "L7:DZ78")
+
+# Collecting data for NY, Texas , CA and Penn (Since we used the smiliar or same states for Assignment 6)
+network <- data %>%
+  select(...1, `New York`, Texas, California, Pennsylvania)%>%
+  rename(current = ...1) 
+
+# We have to remove PR
+network <- network[-c(1, 53), ]
+#Removing the NAs
+network <- na.omit(network)
+
+
+```
+
+```{r}
+#picking TX as the source of the code. We should pivot the data so that it's easier to create a table to combine the data
+texas <- network[, c(1,3)]
+texas <- texas %>%
+  pivot_longer(Texas, names_to = "source") %>%
+  rename(target = current, count = value)
+
+# Sorting
+texas <- texas[order(texas$count),][1:10,]
+``` 
+
+#FOLLOW SAME METHOD.
+
+```{r}
+
+newyork <- network[, 1:2]
+newyork <- newyork %>%
+  pivot_longer(`New York`, names_to = "source") %>%
+  rename(target = current, count = value)
+
+
+newyork <- newyork[order(newyork$count),][1:10,]
+
+```
+
+
+```{r}
+cali <- network[, c(1,4)]
+cali <- cali %>%
+  pivot_longer(California, names_to = "source") %>%
+  rename(target = current, count = value)
+
+cali <- cali[order(cali$count),][1:10,]
+```
+
+```{r}
+pennsylvania <- network[, c(1,5)]
+pennsylvania<- pennsylvania %>%
+  pivot_longer(Pennsylvania, names_to = "source") %>%
+  rename(target = current, count = value)
+
+pennsylvania <- pennsylvania[order(pennsylvania$count),][1:10,]
+```
+
+```{r}
+#using rbind to bind the data into 1 table
+data <- rbind(texas,newyork,cali,pennsylvania)
+data <- data[, c(2, 1, 3)]
+```
+
+
+```{r}
+# used this article for help: https://www.data-imaginist.com/2017/introducing-tidygraph/
+netgraph <- as_tbl_graph(data) %>%
+  activate(nodes)%>%
+  mutate(state = name,
+         label = name)
+ggraph(netgraph, layout = "fr")+ 
+  geom_edge_bend(aes(edge_width = count, color = as.factor(from)), alpha = 0.4)+ 
+  geom_node_text(aes(label = label), size = 5)+
+  theme_classic()+ 
+  theme(axis.text = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        axis.line = element_blank(),
+        legend.position = "none") +
+  ggtitle("State Migrations for New York, Texas, California and Pennsylvania")
+
+```
+

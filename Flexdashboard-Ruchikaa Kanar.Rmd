@@ -1,0 +1,676 @@
+---
+title: "503 Final Project-Ruchikaa Kanar"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+
+
+
+About
+=========================================
+
+Over the last 2 decades, university rankings have played a very significant role in decision making. Over 60% of prospective students use university rankings to short-list and decide what colleges to apply and commit to. Increased access to data has made it easy for individuals to make life changing decisions. Prospective students choose to compare different aspects while making a decision that will impact their future. Through a visual analysis of  The World University Ranking data, I would like to make it easier for individuals to assess their choice of university.
+ 
+The World University Ranking datasets derived from Kaggle can be found below:
+
+https://www.kaggle.com/mylesoneill/world-university-rankings 
+ 
+The Center for World University Rankings (cwurData) is a leading consulting organization that provides policy advice, strategic insight, and consulting services to governments and universities around the world.
+The dataset includes information such as World Rank, the name of the University and country of location, the year, and its overall Score. It also ranks the following: 
+
+* Quality of Education
+
+* Alumni Employment
+
+* Quality of Faculty
+
+* Publications
+
+* Influence
+
+* Citations
+
+* Patents
+
+* Broad Impact 
+
+The Times Higher Education Dataset (timesData) includes information that will be helpful for prospective students. Such as the Number of Students, Student-Staff Ratios. Categories such as 
+Teaching, International Students, Research, Income are given a percentage score out of 100.
+
+By using the cwurData and timesData I aim to create visualzations that would answer the following questions:
+
+*  Which Country has the Average Score of 70 and Above?
+*  What are the Top 10 Worldwide Universities with the Highest Score?
+*  Has the Total Score of a University changed over time?
+*  The ranking of Universities over the years depending on its World Rank. Have they changed?
+
+Keeping these questions and visualizations in mind, a prospective student can consider what Universities he/she can apply to.
+
+Country Scores and University Rankings {data-orientation=columns}
+=========================================
+  
+Row {data-height=650}
+-------------------------------------
+  
+### Average Score Above 70 By Country
+  
+```{r}
+#import the ggplot library
+library(ggplot2)
+library(readr)
+
+#ignore the warning 
+options(warn=-1)
+
+#load the files
+df=read.csv("data/cwurData.csv")
+
+#subset the dataset having score more the 60
+data=subset(df,score > 70)
+
+#create custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black",size = 7, face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "darkred", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+  )
+}
+
+#prepared bar chart using ggplot
+CountryBar <- ggplot(data= data) +aes(x = factor(country),y = score)+
+  stat_summary(aes(fill = factor(country)), fun.y=mean, geom="bar")+
+  stat_summary(aes(label=round(..y..,2)), fun.y=mean, geom="text", size=3,vjust = -0.5)+ 
+  labs(x="Country", y="Score Above 70 ", fill="country", title="Average Score By Country")+ scale_x_discrete(guide = guide_axis(n.dodge=3))+ MyTheme()
+
+#VIew the plot
+CountryBar
+```
+
+
+Row {data-height=350}
+-------------------------------------
+  
+### Top 10 Universities by Score and World-Rank.
+```{r, fig.width=5}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#create custom theme
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_blank(),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_line(colour = "steelblue", linetype = 3, size = 0.5),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_line(colour = "steelblue", linetype = 3, size = 0.5),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and color 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position= "none"
+    # legend at the bottom 6)
+  )
+}
+
+#load the data
+df=read.csv("data/cwurData.csv")
+
+#subset the data for top 10 rank and year 2012
+df=subset(df,world_rank <=7 & year==2012)
+
+# text graph
+text_graph=ggplot(df, aes(world_rank, score, label = institution))+
+  geom_point()+geom_text(aes(color=factor(world_rank)))+xlim(0, 10)+
+  labs(x="World Rank", y="Score", fill="institution")+ MyTheme()
+
+#show the graph
+text_graph
+``` 
+
+> Any prospective student who is applying to a wide range of universities worldwide would like to know which country and university rank in the top 7-10. From the Bar Graph above, the UK followed by the United States have the highest overall score. If I was a student who was open to applying to institutions worldwide, I would take a closer look into which are the top 7 universities worldwide based on score and world-rank. The Text Graph on the left shows visualizes that eventhough the UK has the highest score, the Top 3 out of 7 universities worldwide are located in the United States. Harvard, MIT, and Stanford rank in the Top 3 followed by University of Cambridge, Cal Tech, and Princeton. Over the years rankings and scores do change. But looking at an overall time-line, the United States has the top 3 Universities worldwide.
+
+Number of Students by Country {data-orientation=columns}
+=========================================
+  
+Row {data-height=400}
+-------------------------------------
+  
+### 
+  
+```{r}
+#import all the libararies
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(viridis)
+library(readr)
+
+#ignore the warnings
+options(warn=-1)
+
+#create custom theme with custom color, fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "blue", fill = NA, linetype = 2),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_line(colour = "steelblue", linetype = 3, size = 0.5),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_line(colour = "steelblue", linetype = 3, size = 0.5),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "darkred", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    # legend at the bottom 6)
+
+        
+  )
+}
+
+#load the file
+df1=read_csv("data/timesData.csv")
+
+#subset the data with required columns
+df1=subset(df1,select = c(country,num_students))
+
+#aggregate the data country wise total count of student
+df=df1 %>%group_by(country)%>%summarise(total_student= sum(num_students))%>%
+  rename(region = country)       
+df$region[df$region == "United States of America"]="USA"
+df=na.omit(df)
+
+#load the word map data
+world_map <- map_data("world")
+
+#bind the word map with our data
+total_student <- left_join(df, world_map, by = "region")
+
+#prepared the geographical graph for total number of students
+geomap=ggplot(total_student, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = total_student ), color = "white")+
+  scale_fill_viridis_c(option = "C")+
+  labs(x="Latitude", y="Longitude", fill="country", title="Total Number of Students Studying in Every Country")+
+  MyTheme()
+
+#show the graphs
+geomap
+```
+
+> As a prospective student, I would also look into what countries are the most populated with students. The Georgraphical Graph will show a prospective student that North America, The United Kingdom followed by Australia are the most popular countries students choose. It would definitely be beneficial if an invidual looked into these countries and their institutions if they want to apply based on popularity.
+
+
+Universities Based on Score and Ranking {data-orientation=columns}
+=========================================
+
+
+```{r}
+#load the libraries
+library(ggplot2)
+
+#ignoring the warnings
+options(warn=-1)
+
+#create custom theme with custom colors, fount etc 
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_line(colour = "steelblue", linetype = 2, size = 0.5),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_line(colour = "steelblue", linetype = 2, size = 0.5),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "blue", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    # legend at the bottom 6)
+  )
+}
+
+#load the data
+df=read.csv("data/cwurData.csv")
+
+#subset the data having top 10 word rank and year is 2012 and 2013
+df=subset(df,world_rank<=10 & year<2014,select = c(world_rank,country,institution,score))
+
+#preparing the radar graph
+radar_graph= ggplot(data=df, aes(y = score, x = reorder(institution, world_rank), 
+                group = country, colour = country)) + coord_polar() + geom_point() + geom_path() + MyTheme()+
+labs(x="University Ordered by World Rank", y="Score", fill="country")
+
+#show the graph
+radar_graph
+```
+
+> If a prospective student would like to look into the highest ranking countries in terms of score and the top 10 institutions based on rankings worldwide, a radar graph will be able show/track the university, its ranking and score. If I was looking to apply to schools, after refering to this graph, I would apply to the following: 
+* United States: Harvard University, Stanford University, MIT, Cal Tech, Princeton University, and Columbia University. 
+* United Kingdom: University of Cambridge and University of Oxford.
+
+
+Time Series Analysis {data-orientation=rows}
+=========================================
+  
+Row {.tabset .tabset-fade}
+-------------------------------------
+  
+### World Rank and Total Score {data-height=3000}
+  
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+#graph using ggplot
+
+graph_line=ggplot(df, aes(world_rank)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("darkred","steelblue"))+
+  labs(x="Word Rank", y="Total Score", fill="country", title="World Rank wise Total Score analysis")+ MyTheme()
+  
+
+#show the graph
+graph_line
+
+```
+
+### Harvard University {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+#graph using ggplot
+
+Harvard=subset(df,university_name == "Harvard University")
+
+graph_line=ggplot(Harvard, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("darkred","steelblue"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+#show the graph
+graph_line
+```
+
+### MIT {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+
+MIT=subset(df,university_name == "Massachusetts Institute of Technology")
+
+graph_line=ggplot(MIT, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("purple"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+
+```
+
+### Stanford University {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+
+
+
+Stanford=subset(df,university_name == "Stanford University")
+
+graph_line=ggplot(Stanford, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("darkblue"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+```
+
+### University of Cambridge {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+Cambridge=subset(df,university_name == "University of Cambridge")
+
+graph_line=ggplot(Cambridge, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("orange"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+```
+
+### Caltech University {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+
+CalTech=subset(df,university_name == "California Institute of Technology")
+
+graph_line=ggplot(CalTech, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("black"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+
+```
+
+### Princeton University {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+
+
+
+Princeton=subset(df,university_name == "Princeton University")
+
+graph_line=ggplot(Princeton, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("violet"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+```
+
+
+### University of Oxford {data-height=3000}
+
+```{r}
+#import the libarary
+library(ggplot2)
+
+#ignore the warnings
+options(warn=-1)
+
+#load the data
+df=read.csv("data/timesData.csv")
+
+
+#prepared the custom theme with custom color,fount etc
+MyTheme <- function() {
+  theme(
+    # add border 1)
+    
+    panel.border = element_rect(colour = "black", fill = NA, linetype = 1),
+    # color background 2)
+    panel.background = element_blank(),
+    # modify grid 3)
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y =  element_blank(),
+    panel.grid.minor.y = element_blank(),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(colour = "black", face = "italic", family = "Times New Roman"),
+    axis.title = element_text(colour = "black", family = "Times New Roman"),
+    axis.ticks = element_line(colour = "steelblue"),
+    legend.position="none"
+  )
+}
+
+
+Oxford=subset(df,university_name == "University of Oxford")
+
+graph_line=ggplot(Oxford, aes(year)) + 
+  geom_line(aes(y = total_score, color = "total_score")) + 
+  scale_colour_manual(values=c("green"))+
+  labs(x="Year", y="Total Score", fill="country")+ MyTheme()
+
+
+#show the graph
+graph_line
+```
